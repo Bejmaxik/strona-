@@ -2,10 +2,10 @@
    script.js – BAZA DANYCH + LOGIKA (połączone)
    ============================================================ */
 
-// ---------- DANE PRODUKTÓW (tablica obiektów) ----------
-// Aby dodać nowy produkt, wystarczy dodać nowy obiekt do tablicy products
-// z polami: id, title, description, image, price, category, link
-// Strona automatycznie go wyświetli po odświeżeniu.
+// ---------- DANE PRODUKTÓW ----------
+// Aby dodać nowy produkt, dodaj obiekt do tablicy products.
+// Pola: id, title, description, image, price, category, link.
+// Strona automatycznie wyświetli nowy produkt po odświeżeniu.
 
 const products = [
     {
@@ -120,7 +120,6 @@ const products = [
 
 // ---------- LOGIKA APLIKACJI ----------
 
-// Elementy DOM
 const productsGrid = document.getElementById('productsGrid');
 const emptyMessage = document.getElementById('emptyMessage');
 const filterButtons = document.querySelectorAll('.tools__filter-btn');
@@ -139,9 +138,7 @@ let currentCategory = 'all';
 let currentSearch = '';
 let currentSort = 'default';
 
-// ---- Renderowanie kart ---- //
 function renderProducts() {
-    // Filtrowanie
     let filtered = products.filter(p => {
         const matchCategory = currentCategory === 'all' || p.category === currentCategory;
         const searchTerm = currentSearch.toLowerCase();
@@ -150,18 +147,11 @@ function renderProducts() {
         return matchCategory && matchSearch;
     });
 
-    // Sortowanie
-    if (currentSort === 'price-asc') {
-        filtered.sort((a, b) => a.price - b.price);
-    } else if (currentSort === 'price-desc') {
-        filtered.sort((a, b) => b.price - a.price);
-    } else if (currentSort === 'name-asc') {
-        filtered.sort((a, b) => a.title.localeCompare(b.title, 'pl'));
-    } else if (currentSort === 'name-desc') {
-        filtered.sort((a, b) => b.title.localeCompare(a.title, 'pl'));
-    }
+    if (currentSort === 'price-asc') filtered.sort((a, b) => a.price - b.price);
+    else if (currentSort === 'price-desc') filtered.sort((a, b) => b.price - a.price);
+    else if (currentSort === 'name-asc') filtered.sort((a, b) => a.title.localeCompare(b.title, 'pl'));
+    else if (currentSort === 'name-desc') filtered.sort((a, b) => b.title.localeCompare(a.title, 'pl'));
 
-    // Czyszczenie siatki
     productsGrid.innerHTML = '';
 
     if (filtered.length === 0) {
@@ -170,7 +160,6 @@ function renderProducts() {
     }
     emptyMessage.hidden = true;
 
-    // Generowanie kart
     filtered.forEach(product => {
         const card = document.createElement('div');
         card.className = 'product-card';
@@ -191,9 +180,8 @@ function renderProducts() {
             </div>
         `;
 
-        // Kliknięcie w kartę otwiera modal (oprócz kliknięcia w link)
         card.addEventListener('click', (e) => {
-            if (e.target.closest('.product-card__link')) return; // link otwiera się normalnie
+            if (e.target.closest('.product-card__link')) return;
             openModal(product);
         });
 
@@ -201,7 +189,6 @@ function renderProducts() {
     });
 }
 
-// ---- Modal ---- //
 function openModal(product) {
     modalImage.src = product.image;
     modalImage.alt = product.title;
@@ -211,7 +198,7 @@ function openModal(product) {
     modalPrice.textContent = `${product.price.toFixed(2)} zł`;
     modalLink.href = product.link;
     modalOverlay.hidden = false;
-    document.body.style.overflow = 'hidden'; // blokada scrolla
+    document.body.style.overflow = 'hidden';
 }
 
 function closeModal() {
@@ -219,9 +206,33 @@ function closeModal() {
     document.body.style.overflow = '';
 }
 
-// ---- Eventy ---- //
-
-// Filtry kategorii
+// --- Event listeners ---
 filterButtons.forEach(btn => {
     btn.addEventListener('click', () => {
-       
+        filterButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentCategory = btn.dataset.category;
+        renderProducts();
+    });
+});
+
+searchInput.addEventListener('input', (e) => {
+    currentSearch = e.target.value;
+    renderProducts();
+});
+
+sortSelect.addEventListener('change', (e) => {
+    currentSort = e.target.value;
+    renderProducts();
+});
+
+modalClose.addEventListener('click', closeModal);
+modalOverlay.addEventListener('click', (e) => {
+    if (e.target === modalOverlay) closeModal();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modalOverlay.hidden) closeModal();
+});
+
+// --- WYWOŁANIE POCZĄTKOWE (to było kluczowe!) ---
+renderProducts();
