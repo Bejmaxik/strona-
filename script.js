@@ -1,354 +1,227 @@
-// ============================================================
-// script.js – kompletna logika aplikacji
-// ============================================================
-// Funkcje: motyw, popupy, tłumaczenia, karty, filtrowanie, modal
-// ============================================================
+/* ============================================================
+   script.js – BAZA DANYCH + LOGIKA (połączone)
+   ============================================================ */
 
-(function () {
-  "use strict";
+// ---------- DANE PRODUKTÓW (tablica obiektów) ----------
+// Aby dodać nowy produkt, wystarczy dodać nowy obiekt do tablicy products
+// z polami: id, title, description, image, price, category, link
+// Strona automatycznie go wyświetli po odświeżeniu.
 
-  // ============================================================
-  // 1. STAN APLIKACJI
-  // ============================================================
-  const state = {
-    currentLang: "pl",
-    theme: localStorage.getItem("archivetheme") || "dark",
-    activeCategory: "all",
-    searchQuery: "",
-    sortValue: "default",
-  };
-
-  // ============================================================
-  // 2. TŁUMACZENIA (PL / EN)
-  // ============================================================
-  const translations = {
-    pl: {
-      choose_lang: "🌐 Wybierz język",
-      lang_sub: "Możesz później zmienić w stopce.",
-      usfans_coupons: "💰 500$ in coupons here",
-      claim_now: "Odbierz teraz →",
-      theme_label: "Motyw",
-      subtitle: "Katalog sprawdzonych reprodukcji",
-      search_placeholder: "Szukaj produktu…",
-      all: "Wszystkie",
-      clothes: "Ubrania",
-      shoes: "Obuwie",
-      accessories: "Akcesoria",
-      sort: "Sortuj:",
-      default_sort: "Domyślnie",
-      price_asc: "Cena ↑",
-      price_desc: "Cena ↓",
-      name_asc: "Nazwa A–Z",
-      name_desc: "Nazwa Z–A",
-      no_products: "Brak produktów spełniających kryteria.",
-      view_product: "Zobacz produkt →",
-      kako_link: "📦 Kakolink",
-      usfans_link: "⚡ USFans",
-      footer_text: "© 2025 ArchiveReps — Katalog tworzony przez społeczność.",
-      footer_hint: "Aby dodać produkt, edytuj plik products.js",
-      lang_footer: "Język:",
+const products = [
+    {
+        id: 1,
+        title: "Bluza z kapturem – Essential",
+        description: "Wygodna, bawełniana bluza w klasycznym kroju. Idealna na co dzień.",
+        image: "https://picsum.photos/seed/bluza1/400/400",
+        price: 219.99,
+        category: "Odzież",
+        link: "https://example.com/product/1"
     },
-    en: {
-      choose_lang: "🌐 Choose language",
-      lang_sub: "You can change it later in the footer.",
-      usfans_coupons: "💰 500$ in coupons here",
-      claim_now: "Claim now →",
-      theme_label: "Theme",
-      subtitle: "Catalog of verified replicas",
-      search_placeholder: "Search products…",
-      all: "All",
-      clothes: "Clothing",
-      shoes: "Footwear",
-      accessories: "Accessories",
-      sort: "Sort:",
-      default_sort: "Default",
-      price_asc: "Price ↑",
-      price_desc: "Price ↓",
-      name_asc: "Name A–Z",
-      name_desc: "Name Z–A",
-      no_products: "No products matching your criteria.",
-      view_product: "View product →",
-      kako_link: "📦 Kakolink",
-      usfans_link: "⚡ USFans",
-      footer_text: "© 2025 ArchiveReps — Catalog created by community.",
-      footer_hint: "To add a product, edit the products.js file",
-      lang_footer: "Language:",
+    {
+        id: 2,
+        title: "Trampki niskie – Canvas",
+        description: "Płócienne trampki z gumową podeszwą. Dostępne w kilku kolorach.",
+        image: "https://picsum.photos/seed/trampki2/400/400",
+        price: 149.50,
+        category: "Obuwie",
+        link: "https://example.com/product/2"
     },
-  };
-
-  // ============================================================
-  // 3. POMOCNICZE
-  // ============================================================
-  function t(key) {
-    return translations[state.currentLang][key] || key;
-  }
-
-  function formatPrice(price) {
-    return price.toFixed(2) + (state.currentLang === "pl" ? " PLN" : " USD");
-  }
-
-  // ============================================================
-  // 4. ZASTOSOWANIE TŁUMACZEŃ NA STRONIE
-  // ============================================================
-  function applyTranslations() {
-    document.querySelectorAll("[data-i18n]").forEach((el) => {
-      const key = el.dataset.i18n;
-      el.textContent = t(key);
-    });
-    document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
-      const key = el.dataset.i18nPlaceholder;
-      el.placeholder = t(key);
-    });
-    document.querySelectorAll(".lang-switch").forEach((btn) => {
-      btn.classList.toggle("active", btn.dataset.lang === state.currentLang);
-    });
-  }
-
-  // ============================================================
-  // 5. ZMIANA JĘZYKA
-  // ============================================================
-  function setLanguage(lang) {
-    state.currentLang = lang;
-    localStorage.setItem("archivelang", lang);
-    applyTranslations();
-    // Przetłumacz ceny w kartach (przy następnym renderowaniu)
-    renderProducts();
-  }
-
-  // ============================================================
-  // 6. MOTYW (CIEMNY / JASNY)
-  // ============================================================
-  function applyTheme(theme) {
-    state.theme = theme;
-    document.body.classList.remove("theme-dark", "theme-light");
-    document.body.classList.add("theme-" + theme);
-    localStorage.setItem("archivetheme", theme);
-    const icon = document.getElementById("themeIcon");
-    if (icon) {
-      icon.textContent = theme === "dark" ? "🌙" : "☀️";
+    {
+        id: 3,
+        title: "Skórzany plecak – Vintage",
+        description: "Plecak z naturalnej skóry, pojemność 20L, idealny do miasta.",
+        image: "https://picsum.photos/seed/plecak3/400/400",
+        price: 389.00,
+        category: "Akcesoria",
+        link: "https://example.com/product/3"
+    },
+    {
+        id: 4,
+        title: "T-shirt bawełniany – Logo",
+        description: "Lekki, przewiewny t-shirt z nadrukiem. Gramatura 180 g/m².",
+        image: "https://picsum.photos/seed/tshirt4/400/400",
+        price: 89.99,
+        category: "Odzież",
+        link: "https://example.com/product/4"
+    },
+    {
+        id: 5,
+        title: "Buty sportowe – Runner",
+        description: "Lekkie buty do biegania z amortyzacją i siateczką oddychającą.",
+        image: "https://picsum.photos/seed/buty5/400/400",
+        price: 279.00,
+        category: "Obuwie",
+        link: "https://example.com/product/5"
+    },
+    {
+        id: 6,
+        title: "Zegarek analogowy – Classic",
+        description: "Elegancki zegarek z kopertą ze stali szlachetnej i skórzanym paskiem.",
+        image: "https://picsum.photos/seed/zegarek6/400/400",
+        price: 459.00,
+        category: "Akcesoria",
+        link: "https://example.com/product/6"
+    },
+    {
+        id: 7,
+        title: "Kurtka przejściowa – Field",
+        description: "Wodoodporna kurtka z kapturem, zapinana na zamek i zatrzaski.",
+        image: "https://picsum.photos/seed/kurtka7/400/400",
+        price: 349.90,
+        category: "Odzież",
+        link: "https://example.com/product/7"
+    },
+    {
+        id: 8,
+        title: "Sandały skórzane – Summer",
+        description: "Ręcznie wykonane sandały z miękkiej skóry, regulowane paski.",
+        image: "https://picsum.photos/seed/sandaly8/400/400",
+        price: 189.00,
+        category: "Obuwie",
+        link: "https://example.com/product/8"
+    },
+    {
+        id: 9,
+        title: "Torba na ramię – Messenger",
+        description: "Pojemna torba z przegrodą na laptopa, wodoodporna poliestrowa.",
+        image: "https://picsum.photos/seed/torba9/400/400",
+        price: 159.00,
+        category: "Akcesoria",
+        link: "https://example.com/product/9"
+    },
+    {
+        id: 10,
+        title: "Czapka beanie – Wełniana",
+        description: "Ciepła czapka z domieszką wełny, podwójna grubość, uniseks.",
+        image: "https://picsum.photos/seed/beanie10/400/400",
+        price: 69.99,
+        category: "Akcesoria",
+        link: "https://example.com/product/10"
+    },
+    {
+        id: 11,
+        title: "Jeansy slim fit – 511",
+        description: "Wąskie spodnie jeansowe z elastycznym denimem, 5 kieszeni.",
+        image: "https://picsum.photos/seed/jeans11/400/400",
+        price: 199.00,
+        category: "Odzież",
+        link: "https://example.com/product/11"
+    },
+    {
+        id: 12,
+        title: "Buty zimowe – Trapper",
+        description: "Ocieplane buty z cholewką, antypoślizgowa podeszwa, do -20°C.",
+        image: "https://picsum.photos/seed/zima12/400/400",
+        price: 329.00,
+        category: "Obuwie",
+        link: "https://example.com/product/12"
     }
-  }
+];
 
-  function toggleTheme() {
-    const newTheme = state.theme === "dark" ? "light" : "dark";
-    applyTheme(newTheme);
-  }
+// ---------- LOGIKA APLIKACJI ----------
 
-  // ============================================================
-  // 7. POPUPY
-  // ============================================================
-  function showPopup(id) {
-    const popup = document.getElementById(id);
-    if (popup) popup.style.display = "flex";
-  }
+// Elementy DOM
+const productsGrid = document.getElementById('productsGrid');
+const emptyMessage = document.getElementById('emptyMessage');
+const filterButtons = document.querySelectorAll('.tools__filter-btn');
+const searchInput = document.getElementById('searchInput');
+const sortSelect = document.getElementById('sortSelect');
+const modalOverlay = document.getElementById('modalOverlay');
+const modalClose = document.getElementById('modalClose');
+const modalImage = document.getElementById('modalImage');
+const modalTitle = document.getElementById('modalTitle');
+const modalCategory = document.getElementById('modalCategory');
+const modalDescription = document.getElementById('modalDescription');
+const modalPrice = document.getElementById('modalPrice');
+const modalLink = document.getElementById('modalLink');
 
-  function hidePopup(id) {
-    const popup = document.getElementById(id);
-    if (popup) popup.style.display = "none";
-  }
+let currentCategory = 'all';
+let currentSearch = '';
+let currentSort = 'default';
 
-  // ============================================================
-  // 8. RENDEROWANIE KART PRODUKTÓW
-  // ============================================================
-  function renderProducts() {
-    const grid = document.getElementById("productsGrid");
-    const emptyMsg = document.getElementById("emptyMessage");
-    if (!grid) return;
-
+// ---- Renderowanie kart ---- //
+function renderProducts() {
     // Filtrowanie
-    let filtered = [...products];
-
-    if (state.activeCategory !== "all") {
-      filtered = filtered.filter((p) => p.category === state.activeCategory);
-    }
-
-    if (state.searchQuery.trim()) {
-      const q = state.searchQuery.toLowerCase().trim();
-      filtered = filtered.filter(
-        (p) =>
-          p.title.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q)
-      );
-    }
+    let filtered = products.filter(p => {
+        const matchCategory = currentCategory === 'all' || p.category === currentCategory;
+        const searchTerm = currentSearch.toLowerCase();
+        const matchSearch = p.title.toLowerCase().includes(searchTerm) ||
+                            p.description.toLowerCase().includes(searchTerm);
+        return matchCategory && matchSearch;
+    });
 
     // Sortowanie
-    switch (state.sortValue) {
-      case "price-asc":
+    if (currentSort === 'price-asc') {
         filtered.sort((a, b) => a.price - b.price);
-        break;
-      case "price-desc":
+    } else if (currentSort === 'price-desc') {
         filtered.sort((a, b) => b.price - a.price);
-        break;
-      case "name-asc":
-        filtered.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-      case "name-desc":
-        filtered.sort((a, b) => b.title.localeCompare(a.title));
-        break;
-      default:
-        filtered.sort((a, b) => a.id - b.id);
+    } else if (currentSort === 'name-asc') {
+        filtered.sort((a, b) => a.title.localeCompare(b.title, 'pl'));
+    } else if (currentSort === 'name-desc') {
+        filtered.sort((a, b) => b.title.localeCompare(a.title, 'pl'));
     }
 
-    grid.innerHTML = "";
+    // Czyszczenie siatki
+    productsGrid.innerHTML = '';
 
     if (filtered.length === 0) {
-      emptyMsg.classList.add("visible");
-      return;
+        emptyMessage.hidden = false;
+        return;
     }
-    emptyMsg.classList.remove("visible");
+    emptyMessage.hidden = true;
 
-    filtered.forEach((product) => {
-      const card = document.createElement("div");
-      card.className = "product-card";
-      card.dataset.id = product.id;
+    // Generowanie kart
+    filtered.forEach(product => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.dataset.id = product.id;
 
-      card.innerHTML = `
-        <div class="product-card__image-wrap">
-          <img src="${product.image}" alt="${product.title}" class="product-card__image" loading="lazy" />
-        </div>
-        <div class="product-card__body">
-          <span class="product-card__category">${product.category}</span>
-          <h3 class="product-card__title">${product.title}</h3>
-          <p class="product-card__description">${product.description}</p>
-          <div class="product-card__footer">
-            <span class="product-card__price">${formatPrice(product.price)}</span>
-            <span class="product-card__link">${t("view_product")}</span>
-          </div>
-        </div>
-      `;
+        card.innerHTML = `
+            <div class="product-card__image-wrap">
+                <img class="product-card__image" src="${product.image}" alt="${product.title}" loading="lazy" />
+            </div>
+            <div class="product-card__body">
+                <span class="product-card__category">${product.category}</span>
+                <h3 class="product-card__title">${product.title}</h3>
+                <p class="product-card__description">${product.description}</p>
+            </div>
+            <div class="product-card__footer">
+                <span class="product-card__price">${product.price.toFixed(2)} zł</span>
+                <a class="product-card__link" href="${product.link}" target="_blank" rel="noopener">Zobacz</a>
+            </div>
+        `;
 
-      card.addEventListener("click", () => openModal(product));
-      grid.appendChild(card);
+        // Kliknięcie w kartę otwiera modal (oprócz kliknięcia w link)
+        card.addEventListener('click', (e) => {
+            if (e.target.closest('.product-card__link')) return; // link otwiera się normalnie
+            openModal(product);
+        });
+
+        productsGrid.appendChild(card);
     });
-  }
+}
 
-  // ============================================================
-  // 9. MODAL
-  // ============================================================
-  function openModal(product) {
-    const overlay = document.getElementById("modalOverlay");
-    const img = document.getElementById("modalImage");
-    const title = document.getElementById("modalTitle");
-    const cat = document.getElementById("modalCategory");
-    const desc = document.getElementById("modalDescription");
-    const price = document.getElementById("modalPrice");
-    const link = document.getElementById("modalLink");
-    const kakolink = document.getElementById("modalKakolink");
-    const usfanslink = document.getElementById("modalUsfanslink");
+// ---- Modal ---- //
+function openModal(product) {
+    modalImage.src = product.image;
+    modalImage.alt = product.title;
+    modalTitle.textContent = product.title;
+    modalCategory.textContent = product.category;
+    modalDescription.textContent = product.description;
+    modalPrice.textContent = `${product.price.toFixed(2)} zł`;
+    modalLink.href = product.link;
+    modalOverlay.hidden = false;
+    document.body.style.overflow = 'hidden'; // blokada scrolla
+}
 
-    img.src = product.image;
-    img.alt = product.title;
-    title.textContent = product.title;
-    cat.textContent = product.category;
-    desc.textContent = product.description;
-    price.textContent = formatPrice(product.price);
-    link.href = product.link;
+function closeModal() {
+    modalOverlay.hidden = true;
+    document.body.style.overflow = '';
+}
 
-    // Linki dodatkowe
-    if (product.kakolink) {
-      kakolink.href = product.kakolink;
-      kakolink.style.display = "inline-block";
-    } else {
-      kakolink.style.display = "none";
-    }
-    if (product.usfanslink) {
-      usfanslink.href = product.usfanslink;
-      usfanslink.style.display = "inline-block";
-    } else {
-      usfanslink.style.display = "none";
-    }
+// ---- Eventy ---- //
 
-    overlay.classList.add("open");
-    document.body.style.overflow = "hidden";
-  }
-
-  function closeModal() {
-    const overlay = document.getElementById("modalOverlay");
-    overlay.classList.remove("open");
-    document.body.style.overflow = "";
-  }
-
-  // ============================================================
-  // 10. INICJALIZACJA I ZDARZENIA
-  // ============================================================
-  document.addEventListener("DOMContentLoaded", function () {
-    // --- Motyw ---
-    const savedTheme = localStorage.getItem("archivetheme") || "dark";
-    applyTheme(savedTheme);
-
-    document.getElementById("themeToggle").addEventListener("click", toggleTheme);
-
-    // --- Język ---
-    const savedLang = localStorage.getItem("archivelang") || "pl";
-    setLanguage(savedLang);
-
-    // Popup językowy – pierwsze wejście (jeśli brak zapisanego języka)
-    if (!localStorage.getItem("archivelang")) {
-      showPopup("langPopup");
-    }
-
-    // Obsługa przycisków językowych w popupie
-    document.querySelectorAll(".popup__btn--lang, .lang-switch").forEach((btn) => {
-      btn.addEventListener("click", function () {
-        const lang = this.dataset.lang;
-        setLanguage(lang);
-        hidePopup("langPopup");
-        // Po wybraniu języka pokaż popup USFans (tylko raz)
-        if (!localStorage.getItem("usfansShown")) {
-          setTimeout(() => {
-            showPopup("usfansPopup");
-            localStorage.setItem("usfansShown", "true");
-          }, 500);
-        }
-      });
-    });
-
-    // Zamknięcie popupa USFans
-    document.getElementById("closeUsfansPopup").addEventListener("click", function () {
-      hidePopup("usfansPopup");
-    });
-
-    // Kliknięcie w tło popupa zamyka go
-    document.querySelectorAll(".popup-overlay").forEach((overlay) => {
-      overlay.addEventListener("click", function (e) {
-        if (e.target === this) {
-          this.style.display = "none";
-        }
-      });
-    });
-
-    // --- Wyszukiwarka ---
-    document.getElementById("searchInput").addEventListener("input", function () {
-      state.searchQuery = this.value;
-      renderProducts();
-    });
-
-    // --- Kategorie ---
-    document.querySelectorAll(".filter-btn").forEach((btn) => {
-      btn.addEventListener("click", function () {
-        document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
-        this.classList.add("active");
-        state.activeCategory = this.dataset.category;
-        renderProducts();
-      });
-    });
-
-    // --- Sortowanie ---
-    document.getElementById("sortSelect").addEventListener("change", function () {
-      state.sortValue = this.value;
-      renderProducts();
-    });
-
-    // --- Modal ---
-    document.getElementById("modalClose").addEventListener("click", closeModal);
-    document.getElementById("modalOverlay").addEventListener("click", function (e) {
-      if (e.target === this) closeModal();
-    });
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") closeModal();
-    });
-
-    // --- Renderowanie startowe ---
-    renderProducts();
-  });
-})();
+// Filtry kategorii
+filterButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+       
