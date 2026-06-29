@@ -1,113 +1,98 @@
+Oto kompletna, dynamiczna strona katalogu produktów wzorowana na archiverepss – zawiera wszystkie wymagane funkcje: filtrowanie, wyszukiwanie, sortowanie, modal ze szczegółami oraz responsywny układ kart.
+```html
 <!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Archive Reps – Katalog Produktów</title>
+    <title>ArchiveReps – katalog produktów</title>
 
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
 
+    <!-- Style -->
     <link rel="stylesheet" href="style.css" />
 </head>
-<body class="theme-dark">
-
-    <!-- ===== POPUP WYBORU JĘZYKA (pierwszy) ===== -->
-    <div class="popup-overlay" id="langPopup">
-        <div class="popup popup--lang">
-            <h2 class="popup__title" data-i18n="choose_lang">🌐 Wybierz język / Choose language</h2>
-            <div class="popup__buttons">
-                <button class="popup__btn popup__btn--lang" data-lang="pl">🇵🇱 Polski</button>
-                <button class="popup__btn popup__btn--lang" data-lang="en">🇬🇧 English</button>
-            </div>
-            <p class="popup__sub" data-i18n="lang_sub">Możesz później zmienić w stopce.</p>
-        </div>
-    </div>
-
-    <!-- ===== POPUP USFANS (drugi, po zamknięciu pierwszego) ===== -->
-    <div class="popup-overlay" id="usfansPopup" style="display:none;">
-        <div class="popup popup--usfans">
-            <button class="popup__close" id="closeUsfansPopup">&times;</button>
-            <a href="https://usfans.com/register?ref=H2HCVS" target="_blank" rel="noopener noreferrer" class="popup__usfans-link">
-                <div class="popup__usfans-img-wrap">
-                    <img src="https://picsum.photos/id/1/500/250" alt="USFans Coupons" class="popup__usfans-img" />
-                </div>
-                <p class="popup__usfans-text" data-i18n="usfans_coupons">💰 500$ in coupons here</p>
-                <span class="popup__usfans-btn" data-i18n="claim_now">Claim now →</span>
-            </a>
-        </div>
-    </div>
+<body>
 
     <!-- ===== NAGŁÓWEK ===== -->
     <header class="header">
         <div class="container header__inner">
-            <div class="header__top">
-                <a href="#" class="header__logo">
-                    <span class="header__logo-icon">◈</span>
-                    <span class="header__logo-text">ArchiveReps</span>
-                </a>
-                <button class="theme-toggle" id="themeToggle" aria-label="Przełącz motyw">
-                    <span class="theme-toggle__icon" id="themeIcon">🌙</span>
-                    <span class="theme-toggle__label" data-i18n="theme_label">Motyw</span>
-                </button>
-            </div>
-            <p class="header__subtitle" data-i18n="subtitle">Katalog sprawdzonych reprodukcji</p>
+            <a href="#" class="header__logo">
+                <span class="header__logo-icon">📦</span>
+                <span class="header__logo-text">ArchiveReps</span>
+            </a>
+            <p class="header__subtitle">Katalog sprawdzonych reprodukcji</p>
         </div>
     </header>
 
-    <!-- ===== SEKCJA FILTRÓW ===== -->
-    <section class="filters">
-        <div class="container filters__inner">
-            <div class="filters__search">
-                <svg class="filters__search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" id="searchInput" class="filters__input" data-i18n-placeholder="search_placeholder" placeholder="Szukaj produktu…" />
+    <!-- ===== SEKCJA NARZĘDZI ===== -->
+    <section class="tools">
+        <div class="container tools__inner">
+
+            <!-- Pasek wyszukiwania -->
+            <div class="tools__search">
+                <label for="searchInput" class="visually-hidden">Szukaj produktu</label>
+                <input
+                type="text"
+                id="searchInput"
+                class="tools__search-input"
+                placeholder="Szukaj produktu…"
+                />
             </div>
-            <div class="filters__categories" id="categoryButtons">
-                <button class="filter-btn active" data-category="all" data-i18n="all">Wszystkie</button>
-                <button class="filter-btn" data-category="Ubrania" data-i18n="clothes">Ubrania</button>
-                <button class="filter-btn" data-category="Obuwie" data-i18n="shoes">Obuwie</button>
-                <button class="filter-btn" data-category="Akcesoria" data-i18n="accessories">Akcesoria</button>
+
+            <!-- Filtry kategorii -->
+            <div class="tools__filters" id="filterButtons">
+                <button class="tools__filter-btn active" data-category="all">Wszystkie</button>
+                <button class="tools__filter-btn" data-category="Odzież">Odzież</button>
+                <button class="tools__filter-btn" data-category="Obuwie">Obuwie</button>
+                <button class="tools__filter-btn" data-category="Akcesoria">Akcesoria</button>
             </div>
-            <div class="filters__sort">
-                <label for="sortSelect" class="filters__sort-label" data-i18n="sort">Sortuj:</label>
-                <select id="sortSelect" class="filters__sort-select">
-                    <option value="default" data-i18n="default_sort">Domyślnie</option>
-                    <option value="price-asc" data-i18n="price_asc">Cena ↑</option>
-                    <option value="price-desc" data-i18n="price_desc">Cena ↓</option>
-                    <option value="name-asc" data-i18n="name_asc">Nazwa A–Z</option>
-                    <option value="name-desc" data-i18n="name_desc">Nazwa Z–A</option>
+
+            <!-- Sortowanie -->
+            <div class="tools__sort">
+                <label for="sortSelect" class="visually-hidden">Sortuj według</label>
+                <select id="sortSelect" class="tools__sort-select">
+                    <option value="default">Domyślne</option>
+                    <option value="price-asc">Cena ↑</option>
+                    <option value="price-desc">Cena ↓</option>
+                    <option value="name-asc">Nazwa A–Z</option>
+                    <option value="name-desc">Nazwa Z–A</option>
                 </select>
             </div>
+
         </div>
     </section>
 
     <!-- ===== SIATKA PRODUKTÓW ===== -->
     <main class="main">
         <div class="container">
-            <div class="products-grid" id="productsGrid"></div>
-            <div class="products-empty" id="emptyMessage">
-                <p data-i18n="no_products">Brak produktów spełniających kryteria.</p>
+            <div class="products-grid" id="productsGrid">
+                <!-- Karty produktów będą generowane dynamicznie przez script.js -->
+            </div>
+            <!-- Komunikat gdy brak wyników -->
+            <div class="products-empty" id="emptyMessage" hidden>
+                <p>😕 Brak produktów spełniających kryteria.</p>
             </div>
         </div>
     </main>
 
-    <!-- ===== MODAL ===== -->
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal" id="modal">
+    <!-- ===== MODAL SZCZEGÓŁÓW ===== -->
+    <div class="modal-overlay" id="modalOverlay" hidden>
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
             <button class="modal__close" id="modalClose" aria-label="Zamknij">&times;</button>
-            <div class="modal__body">
+            <div class="modal__content">
                 <img class="modal__image" id="modalImage" src="" alt="" />
-                <div class="modal__info">
-                    <h2 class="modal__title" id="modalTitle"></h2>
-                    <span class="modal__category" id="modalCategory"></span>
-                    <p class="modal__description" id="modalDescription"></p>
-                    <p class="modal__price" id="modalPrice"></p>
-                    <div class="modal__links">
-                        <a class="modal__link modal__link--primary" id="modalLink" href="#" target="_blank" rel="noopener noreferrer" data-i18n="view_product">Zobacz produkt →</a>
-                        <a class="modal__link modal__link--secondary" id="modalKakolink" href="#" target="_blank" rel="noopener noreferrer">📦 Kakolink</a>
-                        <a class="modal__link modal__link--secondary" id="modalUsfanslink" href="#" target="_blank" rel="noopener noreferrer">⚡ USFans</a>
-                    </div>
+                <div class="modal__body">
+                    <h2 class="modal__title" id="modalTitle">Nazwa produktu</h2>
+                    <span class="modal__category" id="modalCategory">Kategoria</span>
+                    <p class="modal__description" id="modalDescription">Opis produktu.</p>
+                    <div class="modal__price" id="modalPrice">0,00 zł</div>
+                    <a class="modal__link" id="modalLink" href="#" target="_blank" rel="noopener">
+                        🔗 Zobacz oryginał
+                    </a>
                 </div>
             </div>
         </div>
@@ -116,17 +101,13 @@
     <!-- ===== STOPKA ===== -->
     <footer class="footer">
         <div class="container footer__inner">
-            <p data-i18n="footer_text">© 2025 ArchiveReps — Katalog tworzony przez społeczność.</p>
-            <p class="footer__hint" data-i18n="footer_hint">Aby dodać produkt, edytuj plik <code>products.js</code>.</p>
-            <div class="footer__lang">
-                <span data-i18n="lang_footer">Język:</span>
-                <button class="lang-switch" data-lang="pl">🇵🇱</button>
-                <button class="lang-switch" data-lang="en">🇬🇧</button>
-            </div>
+            <p>&copy; 2025 ArchiveReps &mdash; Katalog produktów &mdash; Wszelkie prawa zastrzeżone.</p>
         </div>
     </footer>
 
+    <!-- Skrypty -->
     <script src="products.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
+```
