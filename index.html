@@ -1,85 +1,157 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ArchiveReps – katalog produktów</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        /* ---- RESET I ZMIENNE ---- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f5f3f0;
+            --surface: #fff;
+            --text: #1e1e1e;
+            --text2: #5a5a5a;
+            --accent: #b8860b;
+            --accent-hover: #9a7209;
+            --border: #e0ddd8;
+            --shadow: rgba(0,0,0,0.06);
+            --overlay: rgba(0,0,0,0.55);
+            --radius: 12px;
+            --transition: 0.25s ease;
+            --font: 'Inter', sans-serif;
+        }
+        body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+        /* ---- NAGŁÓWEK ---- */
+        .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 24px 0 18px; }
+        .header__inner { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px 24px; }
+        .header__logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
+        .header__logo-icon { font-size: 2rem; }
+        .header__logo-text { font-size: 1.6rem; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; }
+        .header__subtitle { font-size: 0.92rem; color: var(--text2); }
+
+        /* ---- NARZĘDZIA ---- */
+        .tools { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 0; position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 6px var(--shadow); }
+        .tools__inner { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 20px; }
+        .tools__search { flex: 1 1 260px; min-width: 180px; }
+        .tools__search-input { width: 100%; padding: 10px 16px; border: 1.5px solid var(--border); border-radius: 8px; font-family: var(--font); font-size: 0.95rem; background: var(--bg); outline: none; transition: border-color var(--transition); }
+        .tools__search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(184,134,11,0.15); }
+        .tools__filters { display: flex; flex-wrap: wrap; gap: 8px; }
+        .tools__filter-btn { padding: 8px 18px; border: 1.5px solid var(--border); border-radius: 30px; background: transparent; font-family: var(--font); font-size: 0.88rem; font-weight: 500; color: var(--text2); cursor: pointer; transition: all var(--transition); }
+        .tools__filter-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(184,134,11,0.06); }
+        .tools__filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .tools__sort select { padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-family: var(--font); font-size: 0.9rem; background: var(--bg); cursor: pointer; }
+
+        /* ---- SIATKA ---- */
+        .main { flex: 1; padding: 32px 0 48px; }
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; }
+
+        /* ---- KARTA ---- */
+        .product-card { background: var(--surface); border-radius: var(--radius); overflow: hidden; box-shadow: 0 2px 10px var(--shadow); cursor: pointer; transition: transform var(--transition), box-shadow var(--transition); border: 1px solid var(--border); display: flex; flex-direction: column; }
+        .product-card:hover { transform: translateY(-6px); box-shadow: 0 12px 28px rgba(0,0,0,0.10); }
+        .product-card__image-wrap { width: 100%; aspect-ratio: 1; overflow: hidden; background: #fafafa; }
+        .product-card__image { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+        .product-card:hover .product-card__image { transform: scale(1.05); }
+        .product-card__body { padding: 16px 18px 18px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+        .product-card__category { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-weight: 600; }
+        .product-card__title { font-size: 1.08rem; font-weight: 600; line-height: 1.35; }
+        .product-card__description { font-size: 0.85rem; color: var(--text2); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; flex: 1; }
+        .product-card__footer { display: flex; justify-content: space-between; align-items: center; padding: 0 18px 16px; margin-top: auto; }
+        .product-card__price { font-weight: 700; font-size: 1.1rem; }
+        .product-card__link { font-size: 0.82rem; color: var(--accent); text-decoration: none; font-weight: 500; border-bottom: 1px solid transparent; transition: border-color var(--transition); }
+        .product-card__link:hover { border-bottom-color: var(--accent); }
+        .products-empty { text-align: center; padding: 60px 20px; font-size: 1.2rem; color: var(--text2); }
+
+        /* ---- MODAL ---- */
+        .modal-overlay { position: fixed; inset: 0; background: var(--overlay); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
+        .modal-overlay[hidden] { display: none; }
+        .modal { background: var(--surface); border-radius: 16px; max-width: 700px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 60px rgba(0,0,0,0.25); position: relative; }
+        .modal__close { position: absolute; top: 16px; right: 20px; background: none; border: none; font-size: 2.2rem; color: var(--text2); cursor: pointer; transition: color var(--transition); z-index: 10; }
+        .modal__close:hover { color: var(--text); }
+        .modal__image { width: 100%; aspect-ratio: 1.2/1; object-fit: cover; border-radius: 16px 16px 0 0; background: #f0ede8; }
+        .modal__body { padding: 24px 28px 32px; display: flex; flex-direction: column; gap: 12px; }
+        .modal__title { font-size: 1.6rem; font-weight: 700; }
+        .modal__category { display: inline-block; font-size: 0.78rem; text-transform: uppercase; color: var(--accent); font-weight: 600; background: rgba(184,134,11,0.08); padding: 4px 14px; border-radius: 20px; align-self: flex-start; }
+        .modal__description { font-size: 0.95rem; color: var(--text2); line-height: 1.7; }
+        .modal__price { font-size: 1.4rem; font-weight: 700; color: var(--text); }
+        .modal__link { display: inline-block; padding: 10px 20px; background: var(--accent); color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600; text-align: center; transition: background var(--transition); }
+        .modal__link:hover { background: var(--accent-hover); }
+
+        /* ---- STOPKA ---- */
+        .footer { background: var(--surface); border-top: 1px solid var(--border); padding: 20px 0; text-align: center; color: var(--text2); font-size: 0.85rem; }
+    </style>
 </head>
 <body>
 
-    <header class="header">
-        <div class="container header__inner">
-            <a href="#" class="header__logo">
-                <span class="header__logo-icon">📦</span>
-                <span class="header__logo-text">ArchiveReps</span>
-            </a>
-            <p class="header__subtitle">Katalog sprawdzonych reprodukcji</p>
-        </div>
-    </header>
+<header class="header">
+    <div class="container header__inner">
+        <a href="#" class="header__logo">
+            <span class="header__logo-icon">📦</span>
+            <span class="header__logo-text">ArchiveReps</span>
+        </a>
+        <p class="header__subtitle">Katalog sprawdzonych reprodukcji</p>
+    </div>
+</header>
 
-    <section class="tools">
-        <div class="container tools__inner">
-            <div class="tools__search">
-                <label for="searchInput" class="visually-hidden">Szukaj produktu</label>
-                <input type="text" id="searchInput" class="tools__search-input" placeholder="Szukaj produktu…" />
-            </div>
-            <div class="tools__filters" id="filterButtons">
-                <button class="tools__filter-btn active" data-category="all">Wszystkie</button>
-                <button class="tools__filter-btn" data-category="Odzież">Odzież</button>
-                <button class="tools__filter-btn" data-category="Obuwie">Obuwie</button>
-                <button class="tools__filter-btn" data-category="Akcesoria">Akcesoria</button>
-            </div>
-            <div class="tools__sort">
-                <label for="sortSelect" class="visually-hidden">Sortuj według</label>
-                <select id="sortSelect" class="tools__sort-select">
-                    <option value="default">Domyślne</option>
-                    <option value="price-asc">Cena ↑</option>
-                    <option value="price-desc">Cena ↓</option>
-                    <option value="name-asc">Nazwa A–Z</option>
-                    <option value="name-desc">Nazwa Z–A</option>
-                </select>
-            </div>
+<section class="tools">
+    <div class="container tools__inner">
+        <div class="tools__search">
+            <input type="text" id="searchInput" class="tools__search-input" placeholder="Szukaj produktu…">
         </div>
-    </section>
-
-    <main class="main">
-        <div class="container">
-            <div class="products-grid" id="productsGrid"></div>
-            <div class="products-empty" id="emptyMessage" hidden>
-                <p>😕 Brak produktów spełniających kryteria.</p>
-            </div>
+        <div class="tools__filters" id="filterButtons">
+            <button class="tools__filter-btn active" data-category="all">Wszystkie</button>
+            <button class="tools__filter-btn" data-category="Odzież">Odzież</button>
+            <button class="tools__filter-btn" data-category="Obuwie">Obuwie</button>
+            <button class="tools__filter-btn" data-category="Akcesoria">Akcesoria</button>
         </div>
-    </main>
-
-    <div class="modal-overlay" id="modalOverlay" hidden>
-        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-            <button class="modal__close" id="modalClose" aria-label="Zamknij">&times;</button>
-            <div class="modal__content">
-                <img class="modal__image" id="modalImage" src="" alt="" />
-                <div class="modal__body">
-                    <h2 class="modal__title" id="modalTitle">Nazwa produktu</h2>
-                    <span class="modal__category" id="modalCategory">Kategoria</span>
-                    <p class="modal__description" id="modalDescription">Opis produktu.</p>
-                    <div class="modal__price" id="modalPrice">0,00 zł</div>
-                    <a class="modal__link" id="modalLink" href="#" target="_blank" rel="noopener">
-                        🔗 Zobacz oryginał
-                    </a>
-                </div>
-            </div>
+        <div class="tools__sort">
+            <select id="sortSelect">
+                <option value="default">Domyślne</option>
+                <option value="price-asc">Cena ↑</option>
+                <option value="price-desc">Cena ↓</option>
+                <option value="name-asc">Nazwa A–Z</option>
+                <option value="name-desc">Nazwa Z–A</option>
+            </select>
         </div>
     </div>
+</section>
 
-    <footer class="footer">
-        <div class="container footer__inner">
-            <p>&copy; 2025 ArchiveReps &mdash; Katalog produktów &mdash; Wszelkie prawa zastrzeżone.</p>
+<main class="main">
+    <div class="container">
+        <div class="products-grid" id="productsGrid"></div>
+        <div class="products-empty" id="emptyMessage" hidden>
+            <p>😕 Brak produktów spełniających kryteria.</p>
         </div>
-    </footer>
+    </div>
+</main>
 
-    <!-- JEDEN plik JS – dane + logika -->
-    <script src="script.js"></script>
-</body>
-</html>
+<div class="modal-overlay" id="modalOverlay" hidden>
+    <div class="modal">
+        <button class="modal__close" id="modalClose">&times;</button>
+        <img class="modal__image" id="modalImage" src="" alt="">
+        <div class="modal__body">
+            <h2 class="modal__title" id="modalTitle"></h2>
+            <span class="modal__category" id="modalCategory"></span>
+            <p class="modal__description" id="modalDescription"></p>
+            <div class="modal__price" id="modalPrice"></div>
+            <a class="modal__link" id="modalLink" href="#" target="_blank" rel="noopener">🔗 Zobacz oryginał</a>
+        </div>
+    </div>
+</div>
+
+<footer class="footer">
+    <div class="container">
+        <p>&copy; 2025 ArchiveReps – Katalog produktów</p>
+    </div>
+</footer>
+
+<script>
+    // ---------- DANE PRODUKTÓW ----------
+    const products = [
+        { id:1, title:"Bluza z kapturem – Essential", description:"Wygodna, bawełniana bluza w klasycznym kroju.", image:"https://picsum.photos/seed/bluza1/400/400", price:219.99, category:"Odzież", link:"https://example.com/1" },
+        { id:2, title:"Trampki niskie – Canvas", description:"Płócienne trampki z gumową podeszwą.", image:"https://picsum.photos/seed/trampki2/400/400", price:149.50, category:"Obuwie", link:"https://example.com/2" },
+        { id:3, title:"Skórzany plecak – Vintage", description:"Plecak z naturalnej skóry, pojemność 20L.", image:"https://picsum.photos/seed/plecak3/400/400", price:389.00, category:"Akcesoria", link:"https://example.com/3" },
+        { id:4, title:"T-shirt bawełniany – Logo", description:"Lekki, przewiewny t-shirt z nadrukiem.", image:"https://picsum.photos/seed/tshirt4/400/400", price:89.99, category:"Odzież", link:"https://
